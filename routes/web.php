@@ -1,6 +1,6 @@
 <?php
 
-
+/*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
@@ -11,8 +11,13 @@
 |
 */
 
+Route::get('/', 'MenusController@index')->name('menus.index');
+
 // 認証済ユーザーのみ
-Route::group(['middleware' => ['auth']], function(){
-    Route::get('/', 'MenusController@index')->name('menus.index');
-});
+// Route::group(['middleware' => ['auth']], function(){
+// });
+
+// ユーザー登録
+Route::get('signup', 'Auth\RegisterController@showRegistrationForm')->name('signup.get');
+Route::post('signup', 'Auth\RegisterController@register')->name('signup.post');
 
