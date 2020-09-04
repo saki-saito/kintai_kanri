@@ -1,6 +1,6 @@
 <?php
 
-/*
+
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
@@ -11,6 +11,8 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+// 認証済ユーザーのみ
+Route::group(['middleware' => ['auth']], function(){
+    Route::get('/', 'MenusController@index')->name('menus.index');
 });
+
