@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateKinmuKomokuTable extends Migration
+class CreateKinmuTorokusTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,11 @@ class CreateKinmuKomokuTable extends Migration
      */
     public function up()
     {
-        Schema::create('kinmu_komokus', function (Blueprint $table) {
+        Schema::create('kinmu_torokus', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('kinmu_name');
-            $table->time('syotei_start_time');
-            $table->time('syotei_end_time');
-            $table->time('syotei_kyukei_start_time');
-            $table->time('syotei_kyukei_end_time');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('kinmu_komoku_id');
+            $table->date('ymd');
             $table->timestamps();
         });
     }
@@ -31,6 +29,6 @@ class CreateKinmuKomokuTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('kinmu_komokus');
+        Schema::dropIfExists('kinmu_torokus');
     }
 }
