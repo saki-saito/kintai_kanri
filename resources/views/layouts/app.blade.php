@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
         <script src="{{ asset('/js/clock.js') }}"></script>
+        <link rel="stylesheet" href="{{ asset('/css/commons.css') }}">
     </head>
 
     <body>
@@ -14,7 +15,7 @@
         {{-- ナビゲーションバー --}}
         @include('commons.navbar')
 
-        <div class="container">
+        <div class="container h-100">
             {{-- エラーメッセージ --}}
             @include('commons.error_messages')
 

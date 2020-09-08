@@ -19,6 +19,11 @@ class CreateKinmuTorokusTable extends Migration
             $table->unsignedBigInteger('kinmu_komoku_id');
             $table->date('ymd');
             $table->timestamps();
+            
+            // 外部キー制約
+            // onDelete('cascade')：参照先のデータが削除されたとき、このテーブルの該当のデータも一緒に消す
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('kinmu_komoku_id')->references('id')->on('kinmu_komokus')->onDelete('cascade');
         });
     }
 

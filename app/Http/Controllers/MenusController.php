@@ -8,9 +8,18 @@ class MenusController extends Controller
 {
     /* --------------------------------------------- *
      * --------------------------------------------- */
-    public function index(){
-        
-        // トップページを表示する
-        return view('menus.index');
+    public function showTopMenu(){
+        // トップメニューページを表示する
+        return view('menus.top');
     }
+    
+    /* --------------------------------------------- *
+     * --------------------------------------------- */
+    public function showEmploymentMenu(){
+        // 就業メニューページを表示する
+        return view('menus.employment');
+    }
+
+    
+    
 }

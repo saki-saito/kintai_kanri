@@ -11,11 +11,12 @@
 |
 */
 
-Route::get('/', 'MenusController@index')->name('menus.index');
+Route::get('/', 'MenusController@showTopMenu')->name('menus.top');
 
 // 認証済ユーザーのみ
-// Route::group(['middleware' => ['auth']], function(){
-// });
+Route::group(['middleware' => ['auth']], function(){
+    Route::get('employment', 'MenusController@showEmploymentMenu')->name('menus.employment');
+});
 
 // ユーザー登録
 Route::get('signup', 'Auth\RegisterController@showRegistrationForm')->name('signup.get');

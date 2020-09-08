@@ -36,4 +36,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    
+    /* ----------------------------------------------------------- *
+     * 一対多
+     * ----------------------------------------------------------- *
+     * このユーザーの勤務登録
+     * ----------------------------------------------------------- */
+    public function kinmu_torokus(){
+        return $this->hasMany(Kinmu_toroku::class);
+    }
 }
