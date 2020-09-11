@@ -8,9 +8,12 @@
             <ul class="navbar-nav">
                 @if (!Auth::check())
                     {{-- ユーザ登録ページへのリンク --}}
-                    <li>{!! link_to_route('signup.get', 'Signup', [], ['class' => 'nav-link']) !!}</li>
+                    <li class="nav-item">{!! link_to_route('signup.get', 'Signup', [], ['class' => 'nav-link']) !!}</li>
                     {{-- ログインページへのリンク --}}
                     <li class="nav-item">{!! link_to_route('login.get', 'Login', [], ['class' => 'nav-link']) !!}</li>
+                @else
+                    {{-- ユーザー名 --}}
+                    <li class="nav-item"><a href="#" class="nav-link">{{ Auth::user()->name }}</a></li>
                 @endif
             </ul>
         </div>
