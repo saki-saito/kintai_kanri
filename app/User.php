@@ -94,19 +94,21 @@ class User extends Authenticatable
      * ---------------------------------------------------- */
     public function insertKinmuTorokusTable($kinmu_komoku_id, $ymd){
         
-        // 勤務登録できるかの確認
-        $check = $this->checkInsertKinmuTorokusTable($ymd);
+        // // 勤務登録できるかの確認
+        // $check = $this->checkInsertKinmuTorokusTable($ymd);
         
-        // 勤務登録できる
-        if (!$check){
-            // 勤務登録を行う
-            $this->kinmu_torokus()->attach($kinmu_komoku_id, ['ymd' => $ymd]);
-            return true;
-        }
-        // 勤務登録できない
-        else {
-            return false;
-        }
+        // // 勤務登録できる
+        // if (!$check){
+        //     // 勤務登録を行う
+        //     $this->kinmu_torokus()->attach($kinmu_komoku_id, ['ymd' => $ymd]);
+        //     return true;
+        // }
+        // // 勤務登録できない
+        // else {
+        //     return false;
+        // }
+        
+        $this->kinmu_torokus()->attach($kinmu_komoku_id, ['ymd' => $ymd]);
     }
     
     /* ------------------------------------------------------------------- *

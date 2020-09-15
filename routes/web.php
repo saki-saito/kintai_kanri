@@ -39,10 +39,8 @@ Route::group(['middleware' => ['auth']], function(){
     
     
     
-    // Route::group(['prefix' => 'users/{auth_id}'], function(){
-    //     // 勤怠入力-出勤
-    //     Route::post('storework', 'EmploymentsController@storeWork')->name('emp.storework');
-        // // 勤怠入力-出勤
-        // Route::post('leaveWork', 'UserFollowController@store')->name('user.follow');
+    // Route::group(['prefix' => 'user/{user_id}'], function(){
+    //     // 詳細勤務入力カレンダー
+    //     Route::post('kinmu_calender', 'EmploymentsController@viewKinmuCalender')->name('emp.kinmu_calender');
     // });
 });

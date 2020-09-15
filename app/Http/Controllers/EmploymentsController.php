@@ -12,6 +12,7 @@ use App\Kinmu_toroku;
 class EmploymentsController extends Controller
 {
     /* --------------------------------------------- *
+     * 簡易勤務登録を表示する
      * --------------------------------------------- */
     public function viewKanniKinmuInput(){
         
@@ -22,37 +23,49 @@ class EmploymentsController extends Controller
         if (Auth::check()){
             
             // その日の日付の勤務登録、簡易勤務登録-出勤、簡易勤務登録-退勤情報を取得する
-            $ymd = Carbon::today()->format('Y-m-d');
+            Carbon::setLocale('ja');
+            $ymd = Carbon::today();
+            $ymd_fmt = $ymd->format('Y/m/d');
+            $dayofweek = $ymd->isoFormat('(ddd)');
+            $ymd = $ymd->format('Y-m-d');
+            
+            // 初期化
+            $kanni_kinmu_start['check'] = false;
+            $kanni_kinmu_end['check'] = false;
+            
+            // TODO 退勤の後に出勤を押させない制御が必要
+            
             // 簡易勤務登録-出勤
             // 済のときはtrue
             // checkInsertKinmuTorokusTable($ymd)はkinmu_torokus()->where('ymd', $ymd)->exists()だからうまくまとめたい
             if (Auth::user()->checkInsertKinmuTorokusTable($ymd)){
                 // 済のときはtrue
-                $kanni_kinmu_start = Auth::user()->kinmu_torokus()->where('ymd', $ymd)->get()[0]->pivot->checkInsertKanniKinmuTorokuStartsTable();
-            }
-            else {
-                // まだ
-                $kanni_kinmu_start = false;
+                $kanni_kinmu_start['check'] = Auth::user()->getKinmuToroku($ymd)->checkInsertKanniKinmuTorokuStartsTable();
+                if ($kanni_kinmu_start['check']){
+                    $kanni_kinmu_start['ymd'] = $ymd_fmt;
+                    $kanni_kinmu_start['dayofweek'] = $dayofweek;
+                    $kanni_kinmu_start['time'] = Auth::user()->getKinmuToroku($ymd)->kanni_kinmu_toroku_start->kanni_kinmu_start_time;
+                }
             }
             
-            // // 簡易勤務登録-退勤
-            // // 済のときはtrue
-            // // checkInsertKinmuTorokusTable($ymd)はkinmu_torokus()->where('ymd', $ymd)->exists()だからうまくまとめたい
-            // if (Auth::user()->checkInsertKinmuTorokusTable($ymd)){
-            //     // 済のときはtrue
-            //     $kanni_kinmu_end = Auth::user()->kinmu_torokus()->where('ymd', $ymd)->get()[0]->pivot->checkInsertKanniKinmuTorokuStartsTable();
-            // }
-            // else {
-            //     // まだ
-            //     $kanni_kinmu_end = false;
-            // }
-            
+            // 簡易勤務登録-退勤
+            // 済のときはtrue
+            // checkInsertKinmuTorokusTable($ymd)はkinmu_torokus()->where('ymd', $ymd)->exists()だからうまくまとめたい
+            if (Auth::user()->checkInsertKinmuTorokusTable($ymd)){
+                // 済のときはtrue
+                $kanni_kinmu_end['check'] = Auth::user()->getKinmuToroku($ymd)->checkInsertKanniKinmuTorokuEndsTable();
+                if ($kanni_kinmu_end['check']){
+                    $kanni_kinmu_end['ymd'] = $ymd_fmt;
+                    $kanni_kinmu_end['dayofweek'] = $dayofweek;
+                    $kanni_kinmu_end['time'] = Auth::user()->getKinmuToroku($ymd)->kanni_kinmu_toroku_end->kanni_kinmu_end_time;
+                }
+            }
             
             $data = [
                 // 勤務項目から通常勤務を取得
-                'kinmu_komoku_id' => Kinmu_komoku::findOrFail(1)->id,
+                'kinmu_komoku' => Kinmu_komoku::findOrFail(1),
                 'kanni_kinmu_start' => $kanni_kinmu_start,
-                // 'kanni_kinmu_end' => $kanni_kinmu_end,
+                'kanni_kinmu_end' => $kanni_kinmu_end,
             ];
             
         }
@@ -74,11 +87,13 @@ class EmploymentsController extends Controller
         $time = Carbon::now()->format('H:i:s');
         
         // kinmu_torokusテーブルにinsert
-        // →insert失敗時はすでに勤務登録済みのとき
         // すでに勤務登録済のとき=詳細勤務入力済または簡易勤務登録-出勤済または簡易勤務登録-退勤済のとき
-        $rs = $request->user()->insertKinmuTorokusTable($request->kinmu_komoku_id, $request->ymd);
-        if ($rs){
-            // kanni_kinmu_toroku_startsにinsert
+        if (!$request->user()->checkInsertKinmuTorokusTable($request->ymd)){
+            $request->user()->insertKinmuTorokusTable($request->kinmu_komoku_id, $request->ymd);
+        }
+        
+        // kanni_kinmu_toroku_startsにinsert
+        if (!$request->user()->getKinmuToroku($request->ymd)->checkInsertKanniKinmuTorokuStartsTable()){
             $kinmu_toroku_id = $request->user()->getKinmuToroku($request->ymd)->id;
             $kinmu_toroku = new Kinmu_toroku;
             $kinmu_toroku->insertKanniKinmuTorokuStartsTable($kinmu_toroku_id, $time);
@@ -88,36 +103,61 @@ class EmploymentsController extends Controller
         return back();
     }
     
+    /* --------------------------------------------- *
+     * kanni_kinmu_toroku_endsテーブルにinsert
+     * --------------------------------------------- */
+    public function storeKanniKinmuEnd(Request $request){
+        
+        if ($request->ymd == '' || is_null($request->ymd)){
+            // 日付の指定がないときは本日日付
+            $request->ymd = Carbon::today()->format('Y-m-d');
+        }
+        $time = Carbon::now()->format('H:i:s');
+        
+        // kinmu_torokusテーブルにinsert
+        // すでに勤務登録済のとき=詳細勤務入力済または簡易勤務登録-出勤済または簡易勤務登録-退勤済のとき
+        if (!$request->user()->checkInsertKinmuTorokusTable($request->ymd)){
+            $request->user()->insertKinmuTorokusTable($request->kinmu_komoku_id, $request->ymd);
+        }
+        
+        // kanni_kinmu_toroku_startsにinsert
+        if (!$request->user()->getKinmuToroku($request->ymd)->checkInsertKanniKinmuTorokuEndsTable()){
+            $kinmu_toroku_id = $request->user()->getKinmuToroku($request->ymd)->id;
+            $kinmu_toroku = new Kinmu_toroku;
+            $kinmu_toroku->insertKanniKinmuTorokuEndsTable($kinmu_toroku_id, $time);
+        }
+        
+        // 元の画面に戻る
+        return back();
+    }
+    
     // /* --------------------------------------------- *
-    //  * kanni_kinmu_toroku_endsテーブルにinsert
+    //  * $user_idで指定されたユーザーの勤務カレンダーを表示する
     //  * --------------------------------------------- */
-    // public function storeKanniKinmuEnd(Request $request){
+    // public function viewKinmuCalender($user_id){
         
-    //     if ($request->ymd == '' || is_null($request->ymd)){
-    //         // 日付の指定がないときは本日日付
-    //         $request->ymd = Carbon::today()->format('Y-m-d');
-    //     }
-    //     $time = Carbon::now()->format('H:i:s');
+    //     // Carbon::setLocale('ja');
+    //     $ymd = Carbon::today();
+    //     // $ymd_fmt = $ymd->format('Y/m/d');
+    //     // $dayofweek = $ymd->isoFormat('(ddd)');
+    //     // $ym = $ymd->format('Y-m');
+    //     $ymd = $ymd->format('Y-m-d');
         
-    //     // kinmu_torokusテーブルにinsert
-    //     // →insert失敗時はすでに勤務登録済みのとき
-    //     $rs = $request->user()->insertKinmuTorokusTable($request->kinmu_komoku_id, $request->ymd);
-    //     // 勤務登録できたとき
-    //     if ($rs){
-    //         // kanni_kinmu_toroku_startsにinsert
-    //         $kinmu_toroku_id = $request->user()->getKinmuToroku($request->ymd)->id;
-    //         $kinmu_toroku = new Kinmu_toroku;
-    //         $kinmu_toroku->insertKanniKinmuTorokuStartsTable($kinmu_toroku_id, $time);
-    //     }
-    //     // 勤務登録できなかったとき
-    //     else {
-    //         // 簡易勤務登録-出勤済かつ簡易勤務登録-退勤がまだのとき
-    //         if (){
-                
+    //     // 勤務登録と簡易勤務登録を取得する
+        
+    //     // 1か月分ループ
+    //     $firstOfMonth = Carbon::now()->firstOfMonth();
+    //     $endOfMonth = $firstOfMonth->copy()->endOfMonth();
+    //     for ($i = 0; true; $i++) {
+    //         $ymd = $firstOfMonth->addDays($i);
+    //         if ($ymd > $endOfMonth) {
+    //             break;
+    //         }
+    //         $kinmu[$ymd] = User::findOrFail($user_id)->getKinmuToroku($ymd);
+    //         if (!is_null($kinmu)){
+    //             $kanni_kinmu_start[$ymd] = $kinmu->kanni_kinmu_toroku_start;
+    //             $kanni_kinmu_end[$ymd] = $kinmu->kanni_kinmu_toroku_end;
     //         }
     //     }
-        
-    //     // 元の画面に戻る
-    //     return back();
     // }
 }

@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 use App\User;
+use App\Kinmu_toroku;
 use App\Kanni_kinmu_toroku_start;
+use App\Kanni_kinmu_toroku_end;
+
 
 class Kinmu_toroku extends Pivot
 {
@@ -45,6 +48,15 @@ class Kinmu_toroku extends Pivot
         return $this->hasOne(kanni_kinmu_toroku_start::class, 'kinmu_toroku_id');
     }
     
+    /* ----------------------------------------------------------- *
+     * 一対一
+     * ----------------------------------------------------------- *
+     * この勤務登録に紐づいている簡易勤務登録 - 退勤
+     * ----------------------------------------------------------- */
+    public function kanni_kinmu_toroku_end(){
+        return $this->hasOne(kanni_kinmu_toroku_end::class, 'kinmu_toroku_id');
+    }
+    
     /* ---------------------------------------------------- *
      * この勤務登録に紐づく簡易勤務登録 - 出勤を登録する
      * 
@@ -60,20 +72,17 @@ class Kinmu_toroku extends Pivot
         // 簡易勤務登録 - 出勤できる
         if (!$check){
             
-            // createで書けない？？？？？
-            // それかhasonethroughでUserモデルに処理書きたい
-            
-            // // 簡易勤務登録 - 出勤登録を行う
-            // $this->kanni_kinmu_toroku_start()->create([
-            //     'kinmu_toroku_id' => $kinmu_toroku_id, 
-            //     'kanni_kinmu_start_time' => $time,
-            // ]);  // エラーになる
-            
             // 簡易勤務登録 - 出勤登録を行う
-            $obj = new Kanni_kinmu_toroku_start;
-            $obj->kinmu_toroku_id = $kinmu_toroku_id;
-            $obj->kanni_kinmu_start_time = $time;
-            $obj->save();   // できる
+            Kinmu_toroku::find($kinmu_toroku_id)->kanni_kinmu_toroku_start()->create([
+                'kinmu_toroku_id' => $kinmu_toroku_id, 
+                'kanni_kinmu_start_time' => $time,
+            ]);
+            
+            // saveでも書ける
+            // $obj = new Kanni_kinmu_toroku_start;
+            // $obj->kinmu_toroku_id = $kinmu_toroku_id;
+            // $obj->kanni_kinmu_start_time = $time;
+            // $obj->save();
             
             return true;
         }
@@ -94,21 +103,59 @@ class Kinmu_toroku extends Pivot
         return $this->kanni_kinmu_toroku_start()->exists();
     }
     
-    // /* ------------------------------------------------------------------- *
-    //  * この勤務登録に簡易勤務登録 - 出勤登録が紐づいているか調べる
-    //  * 
-    //  * @return  bool    勤務登録済：true
-    //  *                  勤務登録まだ：false
-    //  * ------------------------------------------------------------------- */
-    // public function checkInsertKanniKinmuTorokuStartsTable(){
+    /* ---------------------------------------------------- *
+     * この勤務登録に紐づく簡易勤務登録 - 退勤を登録する
+     * 
+     * @param   $kinmu_toroku_id    簡易勤務登録 - 退勤を紐づける勤務登録のid
+     * 
+     * @return  bool    できた：true
+     *                  できなかった：false
+     * ---------------------------------------------------- */
+    public function insertKanniKinmuTorokuEndsTable($kinmu_toroku_id, $time){
         
-    //     return $this->kanni_kinmu_toroku_start()->exists();
+        // 簡易勤務登録 - 退勤できるかの確認
+        $check = $this->checkInsertKanniKinmuTorokuEndsTable();
+        
+        // 簡易勤務登録 - 退勤できる
+        if (!$check){
+            
+            // 簡易勤務登録 - 退勤登録を行う
+            Kinmu_toroku::find($kinmu_toroku_id)->kanni_kinmu_toroku_end()->create([
+                'kinmu_toroku_id' => $kinmu_toroku_id, 
+                'kanni_kinmu_end_time' => $time,
+            ]);
+            
+            return true;
+        }
+        // 簡易勤務登録 - 出勤できない
+        else {
+            return false;
+        }
+    }
+    
+    /* ------------------------------------------------------------------- *
+     * この勤務登録に簡易勤務登録 - 退勤登録が紐づいているか調べる
+     * 
+     * @return  bool    勤務登録済：true
+     *                  勤務登録まだ：false
+     * ------------------------------------------------------------------- */
+    public function checkInsertKanniKinmuTorokuEndsTable(){
+        
+        return $this->kanni_kinmu_toroku_end()->exists();
+    }
+    
+    // /* ------------------------------------------------------------------- *
+    //  * この勤務登録に紐づいている簡易勤務登録 - 出勤を取得する
+    //  * 
+    //  * @return  object  簡易勤務登録-出勤テーブルの該当のレコード
+    //  *                  該当レコードがない場合はNULLを返す
+    //  * ------------------------------------------------------------------- */
+    // public function getKanniKinmuTorokuStart(){
+    //     $this->kanni_kinmu_toroku_start;
     // }
     
-    
-    
-    // debug
-    public function hello(){
-        return 'Hello, world.';
-    }
+    // // debug
+    // public function hello(){
+    //     return 'Hello, world.';
+    // }
 }
