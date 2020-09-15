@@ -68,19 +68,19 @@ class User extends Authenticatable
         return $this->hasMany(Kinmu_toroku::class);
     }
     
-     /* ----------------------------------------------------------- *
-     * このユーザーの簡易勤務登録 - 出勤
-     * ----------------------------------------------------------- */
-    public function kanni_kinmu_toroku_starts(){
+    //  /* ----------------------------------------------------------- *
+    //  * このユーザーの簡易勤務登録 - 出勤
+    //  * ----------------------------------------------------------- */
+    // public function kanni_kinmu_toroku_start(){
         
-        /* ---------------------------------------------------- *
-         * hasManyThrough(, )：～経由の一対多
-         * 第一引数：最終的にアクセスしたいモデル名
-         * 第二引数：第２引数は仲介するモデル名
-         * ---------------------------------------------------- */
-        return $this->hasManyThrough(Kanni_kinmu_toroku_start::class, Kinmu_toroku::class, 'user_id', 'kinmu_toroku_id', 'id', 'id');
-        // return $this->hasManyThrough(Kanni_kinmu_toroku_start::class, Kinmu_toroku::class);
-    }
+    //     /* ---------------------------------------------------- *
+    //      * hasOneThrough(, )：～経由の一対一
+    //      * 第一引数：最終的にアクセスしたいモデル名
+    //      * 第二引数：第２引数は仲介するモデル名
+    //      * ---------------------------------------------------- */
+    //     return $this->hasOneThrough(Kanni_kinmu_toroku_start::class, Kinmu_toroku::class, 'id', 'kinmu_toroku_id', 'id', 'id');
+    //     // return $this->hasOneThrough(Kanni_kinmu_toroku_start::class, Kinmu_toroku::class);
+    // }
     
     
     /* ---------------------------------------------------- *
@@ -90,7 +90,7 @@ class User extends Authenticatable
      *          $ymd                登録する日付
      * 
      * @return  bool    true：勤務登録した
-     *                  false：勤務登録していない
+     *                  false：勤務登録していない（できなかった）
      * ---------------------------------------------------- */
     public function insertKinmuTorokusTable($kinmu_komoku_id, $ymd){
         
@@ -98,7 +98,7 @@ class User extends Authenticatable
         $check = $this->checkInsertKinmuTorokusTable($ymd);
         
         // 勤務登録できる
-        if ($check){
+        if (!$check){
             // 勤務登録を行う
             $this->kinmu_torokus()->attach($kinmu_komoku_id, ['ymd' => $ymd]);
             return true;
@@ -110,10 +110,10 @@ class User extends Authenticatable
     }
     
     /* ------------------------------------------------------------------- *
-     * このユーザーが$ymdの日に勤務登録できるか調べる
+     * このユーザーが$ymdの日に勤務登録済か未か調べる
      * 
-     * @return  bool    勤務登録できる：true
-     *                  勤務登録できない：false
+     * @return  bool    勤務登録済：true
+     *                  勤務登録まだ：false
      * ------------------------------------------------------------------- */
     public function checkInsertKinmuTorokusTable($ymd){
         
@@ -122,64 +122,7 @@ class User extends Authenticatable
             $ymd = Carbon::today()->format('Y-m-d');
         }
         
-        return !($this->kinmu_torokus()->where('ymd', $ymd)->exists());
-    }
-    
-    /* ---------------------------------------------------- *
-     * 簡易勤務登録 - 出勤する
-     * 
-     * @param   $kinmu_toroku_id    簡易勤務登録 - 出勤を紐づける勤務登録のid
-     * 
-     * @return  bool
-     * ---------------------------------------------------- */
-    public function insertKanniKinmuTorokuStartsTable($kinmu_toroku_id, $time){
-        
-        // 簡易勤務登録 - 出勤できるかの確認
-        $check = $this->checkInsertKanniKinmuTorokuStartsTable($kinmu_toroku_id);
-        
-        // 簡易勤務登録 - 出勤できる
-        if ($check){
-            
-            // createで書けない？？？？？
-            /* ************************************************************************** *
-             * // 認証済みユーザ（閲覧者）の投稿として作成（リクエストされた値をもとに作成）
-             * $request->user()->microposts()->create([
-             *     'content' => $request->content,
-             * ]);
-             * みたいにかきたい
-             * ************************************************************************* */
-            /* ****************************************************** *
-            // 簡易勤務登録 - 出勤登録を行う
-            $this->kanni_kinmu_toroku_starts()->create([
-                'kinmu_toroku_id' => $kinmu_toroku_id, 
-                'kanni_kinmu_start_time' => $time,
-            ]);
-             * ****************************************************** */
-            // App\User::find(1)->kinmu_toroku_relations()->where('id',2 )->get()[0];
-            
-            // 簡易勤務登録 - 出勤登録を行う
-            $obj = new Kanni_kinmu_toroku_start;
-            $obj->kinmu_toroku_id = $kinmu_toroku_id;
-            $obj->kanni_kinmu_start_time = $time;
-            $obj->save();   // エラーでた
-            
-            return true;
-        }
-        // 簡易勤務登録 - 出勤できない
-        else {
-            return false;
-        }
-    }
-    
-    /* ------------------------------------------------------------------- *
-     * このユーザーが簡易勤務登録 - 出勤できるか調べる
-     * 
-     * @return  bool    勤務登録できる：true
-     *                  勤務登録できない：false
-     * ------------------------------------------------------------------- */
-    public function checkInsertKanniKinmuTorokuStartsTable($kinmu_toroku_id){
-        
-        return !($this->kanni_kinmu_toroku_starts()->where('kinmu_toroku_id', $kinmu_toroku_id)->exists());
+        return $this->kinmu_torokus()->where('ymd', $ymd)->exists();
     }
     
     /* ---------------------------------------------------- *

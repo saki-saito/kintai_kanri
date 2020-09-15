@@ -15,9 +15,13 @@
                         {{-- 出勤 --}}
                         {!! Form::open(['route' => 'emp.kanni_kinmu_start', 'method' => 'post']) !!}
                             {!! Form::hidden('user', Auth::user()) !!}
-                            {!! Form::hidden('kinmu_komoku_id', 1) !!}
+                            {!! Form::hidden('kinmu_komoku_id', $kinmu_komoku_id) !!}
                             {!! Form::hidden('ymd', '') !!}
-                            {!! Form::button('<i class="fas fa-star"></i>　出勤', ['class' => 'btn btn-outline-danger btn-block btn-lg', 'type' => 'submit']) !!}
+                            @if(!$kanni_kinmu_start)
+                                {!! Form::button('<i class="fas fa-star"></i>　出勤', ['class' => 'btn btn-outline-danger btn-block btn-lg', 'type' => 'submit']) !!}
+                            @else
+                                {!! Form::button('<i class="fas fa-star"></i>　出勤済', ['class' => 'btn btn-danger btn-block btn-lg　disabled']) !!}
+                            @endif
                         {!! Form::close() !!}
                     </div>
                     

@@ -34,6 +34,8 @@ Route::group(['middleware' => ['auth']], function(){
     Route::get('kanni_kinmu', 'EmploymentsController@viewKanniKinmuInput')->name('emp.kanni_kinmu');
     // 簡易勤務登録 - 出勤
     Route::post('kanni_kinmu_start', 'EmploymentsController@storeKanniKinmuStart')->name('emp.kanni_kinmu_start');
+    // 簡易勤務登録 - 退勤
+    Route::post('kanni_kinmu_end', 'EmploymentsController@storeKanniKinmuEnd')->name('emp.kanni_kinmu_end');
     
     
     
