@@ -39,8 +39,8 @@ Route::group(['middleware' => ['auth']], function(){
     
     
     
-    // Route::group(['prefix' => 'user/{user_id}'], function(){
-    //     // 詳細勤務入力カレンダー
-    //     Route::post('kinmu_calender', 'EmploymentsController@viewKinmuCalender')->name('emp.kinmu_calender');
-    // });
+    Route::group(['prefix' => 'user/{user_id}'], function(){
+        // 勤務カレンダー
+        Route::get('kinmu_calender/{ym}', 'EmploymentsController@viewKinmuCalender')->name('emp.kinmu_calender');
+    });
 });

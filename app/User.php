@@ -151,4 +151,28 @@ class User extends Authenticatable
         
     }
     
+    /* ---------------------------------------------------- *
+     * このユーザーの$ymdの勤務項目を取得する
+     * 
+     * @param   $ymd    取得する日付
+     * 
+     * @return  object  勤務項目テーブルの該当のレコード
+     *                  該当レコードがない場合はNULLを返す
+     * ---------------------------------------------------- */
+        public function getKinmuKomoku($ymd){
+        
+        $obj = $this->kinmu_torokus()->where('ymd', $ymd);
+        
+        // $ymdの勤務登録があるとき
+        if ($obj->count() == 1){
+            // 勤務登録テーブルのレコードのみを返す
+            return $obj->get()[0];
+        }
+        else {
+            return NULL;
+        }
+        
+        
+    }
+    
 }

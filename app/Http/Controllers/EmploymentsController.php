@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use Carbon\Carbon;
 use \Auth;
+use App\User;
 use App\Kinmu_komoku;
 use App\Kinmu_toroku;
 
@@ -131,33 +132,82 @@ class EmploymentsController extends Controller
         return back();
     }
     
-    // /* --------------------------------------------- *
-    //  * $user_idで指定されたユーザーの勤務カレンダーを表示する
-    //  * --------------------------------------------- */
-    // public function viewKinmuCalender($user_id){
+    /* ------------------------------------------------------------ *
+     * $user_idで指定されたユーザーの$ymの勤務カレンダーを表示する
+     * ------------------------------------------------------------ */
+    public function viewKinmuCalender($user_id, $ym){
         
-    //     // Carbon::setLocale('ja');
-    //     $ymd = Carbon::today();
-    //     // $ymd_fmt = $ymd->format('Y/m/d');
-    //     // $dayofweek = $ymd->isoFormat('(ddd)');
-    //     // $ym = $ymd->format('Y-m');
-    //     $ymd = $ymd->format('Y-m-d');
+        // $ymがないときは今月
+        if (is_null($ym) || $ym == ""){
+            $ym = Carbon::today();
+        }
         
-    //     // 勤務登録と簡易勤務登録を取得する
+        // yyyy-mm-dd hh:ii:ss の形にする
+        $ym = new Carbon($ym);
         
-    //     // 1か月分ループ
-    //     $firstOfMonth = Carbon::now()->firstOfMonth();
-    //     $endOfMonth = $firstOfMonth->copy()->endOfMonth();
-    //     for ($i = 0; true; $i++) {
-    //         $ymd = $firstOfMonth->addDays($i);
-    //         if ($ymd > $endOfMonth) {
-    //             break;
-    //         }
-    //         $kinmu[$ymd] = User::findOrFail($user_id)->getKinmuToroku($ymd);
-    //         if (!is_null($kinmu)){
-    //             $kanni_kinmu_start[$ymd] = $kinmu->kanni_kinmu_toroku_start;
-    //             $kanni_kinmu_end[$ymd] = $kinmu->kanni_kinmu_toroku_end;
-    //         }
-    //     }
-    // }
+        // 1か月分ループ
+        $firstOfMonth = $ym->firstOfMonth();
+        $endOfMonth = $firstOfMonth->copy()->endOfMonth();
+        
+        for ($i = 0; true; $i++) {
+            
+            $date = $firstOfMonth->copy()->addDays($i);
+            if ($date > $endOfMonth) {
+                break;
+            }
+            $ymd = $date->format('Y-m-d');
+            
+            // 勤務登録情報の取得
+            $user = User::findOrFail($user_id);
+                
+            // 勤務登録（日付とか所定時間）の取得
+            $kinmu_komoku = $user->getKinmuKomoku($ymd);
+            $kinmu_toroku = $user->getKinmuToroku($ymd);
+            // 簡易勤務登録-出勤の取得
+            if (!is_null($kinmu_toroku) && $kinmu_toroku->checkInsertKanniKinmuTorokuStartsTable()){
+                $kanni_kinmu_start = $kinmu_toroku->kanni_kinmu_toroku_start;
+            }
+            else {
+                $kanni_kinmu_start = NULL;
+            }
+            // 簡易勤務登録-退勤の取得
+            if (!is_null($kinmu_toroku) && $kinmu_toroku->checkInsertKanniKinmuTorokuEndsTable()){
+                $kanni_kinmu_end = $kinmu_toroku->kanni_kinmu_toroku_end;
+            }
+            else {
+                $kanni_kinmu_end = NULL;
+            }
+            
+            // 日付加工
+            Carbon::setLocale('ja');
+            $date = new Carbon($ymd);
+            $d = $date->day;
+            $dayofweek = $date->isoFormat('(ddd)');
+            if ($date->isWeekend()){
+                $day_kubun = 1;
+            }
+            else {
+                $day_kubun = 2;
+            }
+            
+            
+            $kinmus[] = [
+                'd' => $d,
+                'dayofweek' => $dayofweek,
+                'day_kubun' => $day_kubun,
+                'kinmu_komoku' => $kinmu_komoku,
+                'kanni_kinmu_start' => $kanni_kinmu_start,
+                'kanni_kinmu_end' => $kanni_kinmu_end,
+            ];
+        }
+        
+        // 詳細勤務入力ページを表示する
+        return view('employments.kinmu_calender', [
+            'kinmus' => $kinmus, 
+            'ym' => $ym->format('Y年 m月'), 
+            'ym_bk' => $ym->subMonth()->format('Y-m'), 
+            'ym_nxt' => $ym->addMonth(2)->format('Y-m')
+        ]);
+    }
+    
 }
