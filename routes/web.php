@@ -42,5 +42,7 @@ Route::group(['middleware' => ['auth']], function(){
     Route::group(['prefix' => 'user/{user_id}'], function(){
         // 勤務カレンダー
         Route::get('kinmu_calender/{ym}', 'EmploymentsController@viewKinmuCalender')->name('emp.kinmu_calender');
+        // 詳細勤務入力画面
+        Route::get('syosai_kinmu/{ymd}', 'EmploymentsController@viewSyosaiKinmuInput')->name('emp.syosai_kinmu');
     });
 });

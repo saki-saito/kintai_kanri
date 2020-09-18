@@ -23,10 +23,10 @@
             </table>
             <table class="table table-striped table-bordered">
                 <tr>
-                    <th class="text-center align-middle">日付<br>（曜日）</th>
-                    <th class="text-center align-middle">勤務実績</th>
-                    <th class="text-center align-middle">出勤時刻</th>
-                    <th class="text-center align-middle">退勤時刻</th>
+                    <th class="text-center align-middle col-ms-2">日付<br>（曜日）</th>
+                    <th class="text-center align-middle col-ms-4">勤務実績</th>
+                    <th class="text-center align-middle col-ms-3">出勤時刻</th>
+                    <th class="text-center align-middle col-ms-3">退勤時刻</th>
                 </tr>
                 @foreach ($kinmus as $kinmu)
                     <tr>

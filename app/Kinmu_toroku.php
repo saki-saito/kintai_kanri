@@ -9,7 +9,7 @@ use App\User;
 use App\Kinmu_toroku;
 use App\Kanni_kinmu_toroku_start;
 use App\Kanni_kinmu_toroku_end;
-
+use App\Jikangai_toroku;
 
 class Kinmu_toroku extends Pivot
 {
@@ -55,6 +55,15 @@ class Kinmu_toroku extends Pivot
      * ----------------------------------------------------------- */
     public function kanni_kinmu_toroku_end(){
         return $this->hasOne(kanni_kinmu_toroku_end::class, 'kinmu_toroku_id');
+    }
+    
+    /* ----------------------------------------------------------- *
+     * 一対一
+     * ----------------------------------------------------------- *
+     * この勤務登録に紐づいている時間外登録
+     * ----------------------------------------------------------- */
+    public function jikangai_toroku(){
+        return $this->hasOne(jikangai_toroku::class, 'kinmu_toroku_id');
     }
     
     /* ---------------------------------------------------- *
